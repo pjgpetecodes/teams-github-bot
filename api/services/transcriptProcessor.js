@@ -450,151 +450,85 @@ class TranscriptProcessor {
   }
 
   /**
-   * Create a comprehensive summary from metadata when transcript content is unavailable
+   * Create a simple summary with just transcript content
    * @param {object} transcriptData - Transcript metadata
-   * @returns {object} Fallback summary object
+   * @returns {object} Simple summary object with transcript only
    */
   static createFallbackSummary(transcriptData) {
-    console.log('📝 Creating comprehensive summary from available metadata...');
+    console.log('📝 Creating simple summary with transcript content only...');
     
-    const meetingOrganizer = transcriptData.meetingOrganizer;
-    const organizerName = meetingOrganizer?.user?.displayName || 
-                         meetingOrganizer?.id || 
-                         'Unknown Organizer';
-    const createdTime = new Date(transcriptData.createdDateTime).toLocaleString();
-    const endTime = new Date(transcriptData.endDateTime).toLocaleString();
+    const createdTime = new Date(transcriptData.createdDateTime);
     
-    // Calculate meeting duration
-    const duration = Math.round((new Date(transcriptData.endDateTime) - new Date(transcriptData.createdDateTime)) / 1000 / 60);
+    // Extract actual transcript content if available
+    let transcriptContent = '';
+    if (transcriptData.transcriptContent) {
+      transcriptContent = transcriptData.transcriptContent;
+    } else if (transcriptData.content) {
+      transcriptContent = transcriptData.content;
+    } else {
+      transcriptContent = 'Transcript content not available in this notification.';
+    }
     
     return {
-      title: `Teams Meeting Transcript Available - ${new Date().toLocaleDateString()}`,
-      body: `**🎯 Teams Meeting Transcript Notification**\n\n` +
-            `📅 **Meeting Details:**\n` +
-            `- Organizer: ${organizerName}\n` +
-            `- Start Time: ${createdTime}\n` +
-            `- End Time: ${endTime}\n` +
-            `- Duration: ${duration} minutes\n` +
-            `- Meeting ID: ${transcriptData.meetingId}\n` +
-            `- Call ID: ${transcriptData.callId}\n\n` +
-            `📋 **Transcript Information:**\n` +
-            `- Transcript ID: ${transcriptData.id}\n` +
-            `- Content Correlation ID: ${transcriptData.contentCorrelationId}\n` +
-            `- Status: ✅ Transcript created and available\n\n` +
-            `🔗 **Access Information:**\n` +
-            `- Content URL: ${transcriptData.transcriptContentUrl}\n` +
-            `- This notification confirms a transcript has been generated\n` +
-            `- Actual transcript content requires additional permissions\n\n` +
-            `🚀 **Next Steps:**\n` +
-            `- Transcript is ready for processing\n` +
-            `- Configure permissions to access full content\n` +
-            `- Consider implementing transcript processing workflow\n\n` +
-            `💡 **Technical Details:**\n` +
-            `- Received via Microsoft Graph webhook\n` +
-            `- Encrypted notification successfully decrypted\n` +
-            `- Metadata extraction completed\n` +
-            `- Ready for integration with downstream systems`,
-      isMetadata: true,
+      title: `Meeting Notes - ${createdTime.toLocaleDateString()}`,
+      body: transcriptContent,
+      isMetadata: false,
       isRichData: true,
-      hasActualContent: false,
+      hasActualContent: transcriptContent !== 'Transcript content not available in this notification.',
       meetingDetails: {
-        organizer: organizerName,
-        organizerId: meetingOrganizer?.id,
         startTime: transcriptData.createdDateTime,
         endTime: transcriptData.endDateTime,
-        duration: duration,
         meetingId: transcriptData.meetingId,
         callId: transcriptData.callId,
-        transcriptId: transcriptData.id,
-        contentCorrelationId: transcriptData.contentCorrelationId,
-        transcriptContentUrl: transcriptData.transcriptContentUrl
+        transcriptId: transcriptData.id
       },
       timestamp: new Date().toISOString()
     };
   }
 
   /**
-   * Generate enhanced metadata summary
+   * Generate simple summary with transcript content only
    * @param {object} transcriptData - Transcript data
-   * @returns {object|null} Enhanced summary or null
+   * @returns {object|null} Simple summary or null
    */
   static generateEnhancedMetadataSummary(transcriptData) {
     try {
-      console.log('🎯 Generating enhanced summary from transcript metadata...');
+      console.log('🎯 Generating simple summary with transcript content only...');
       
       const createdDate = new Date(transcriptData.createdDateTime);
-      const endDate = new Date(transcriptData.endDateTime);
-      const duration = Math.round((endDate - createdDate) / 1000 / 60); // Duration in minutes
       
-      const organizerName = transcriptData.meetingOrganizer?.id || 'Unknown';
-      const meetingTime = createdDate.toLocaleString();
-      const endTime = endDate.toLocaleString();
+      // Extract actual transcript content if available
+      let transcriptContent = '';
+      if (transcriptData.transcriptContent) {
+        transcriptContent = transcriptData.transcriptContent;
+      } else if (transcriptData.content) {
+        transcriptContent = transcriptData.content;
+      } else {
+        transcriptContent = 'Transcript content not available in this notification.';
+      }
       
-      // Extract meeting info from the complex meeting ID
-      const meetingId = transcriptData.meetingId || 'Unknown';
-      const callId = transcriptData.callId || 'Unknown';
+      const title = `Meeting Notes - ${createdDate.toLocaleDateString()}`;
       
-      // Create a comprehensive summary title
-      const title = `Teams Meeting Transcript - ${createdDate.toLocaleDateString()} (${duration}min)`;
-      
-      // Generate an action-oriented summary
-      const body = `# Teams Meeting Transcript Summary\n\n` +
-                  `## 📋 Meeting Information\n` +
-                  `- **Date & Time:** ${meetingTime}\n` +
-                  `- **Duration:** ${duration} minutes (ended ${endTime})\n` +
-                  `- **Organizer ID:** ${organizerName}\n` +
-                  `- **Meeting ID:** ${meetingId}\n` +
-                  `- **Call ID:** ${callId}\n\n` +
-                  `## 🎯 Action Items\n` +
-                  `- [ ] Review meeting transcript for key decisions\n` +
-                  `- [ ] Follow up on action items discussed\n` +
-                  `- [ ] Share summary with meeting participants\n` +
-                  `- [ ] Schedule follow-up meetings if needed\n\n` +
-                  `## 📝 Transcript Details\n` +
-                  `- **Transcript ID:** ${transcriptData.id}\n` +
-                  `- **Content Correlation ID:** ${transcriptData.contentCorrelationId}\n` +
-                  `- **Status:** Transcript available for processing\n\n` +
-                  `## 🔗 Technical Information\n` +
-                  `- **Content URL:** ${transcriptData.transcriptContentUrl}\n` +
-                  `- **Notification Time:** ${new Date().toISOString()}\n\n` +
-                  `---\n\n` +
-                  `**Note:** This summary was generated from transcript metadata. ` +
-                  `**Status Update:** User.Read.All permission is now working ✅\n\n` +
-                  `**Current Issue:** The specific transcript content requires Resource-Specific Consent (RSC) permissions.\n\n` +
-                  `**Next Steps to Get Full Transcript Content:**\n` +
-                  `1. **Option A - Teams App with RSC:** Create a Teams app manifest with RSC permissions\n` +
-                  `2. **Option B - Different API Approach:** Use different Graph API endpoints\n` +
-                  `3. **Option C - Continue with Rich Metadata:** Use the comprehensive meeting data we already have\n\n` +
-                  `**Current Capabilities (Working Now):**\n` +
-                  `- ✅ Meeting start/end times and duration\n` +
-                  `- ✅ Meeting organizer and participant info\n` +
-                  `- ✅ Meeting IDs and correlation data\n` +
-                  `- ✅ Transcript availability confirmation\n` +
-                  `- ✅ Rich webhook notifications with encryption\n\n` +
-                  `**For now, this metadata provides excellent meeting tracking and can trigger workflows even without the actual conversation text.**`;
-      
-      console.log('✅ Enhanced metadata summary generated successfully');
+      console.log('✅ Simple summary generated successfully');
       
       return {
         title: title,
-        body: body,
+        body: transcriptContent,
         originalTranscript: JSON.stringify(transcriptData, null, 2),
-        isMetadata: true,
+        isMetadata: false,
         isRichData: true,
-        hasActualContent: false,
+        hasActualContent: transcriptContent !== 'Transcript content not available in this notification.',
         transcriptUrl: transcriptData.transcriptContentUrl,
         metadata: {
-          duration: duration,
-          organizer: organizerName,
           meetingDate: createdDate.toISOString(),
-          endDate: endDate.toISOString(),
-          meetingId: meetingId,
-          callId: callId
+          endDate: new Date(transcriptData.endDateTime).toISOString(),
+          meetingId: transcriptData.meetingId,
+          callId: transcriptData.callId
         }
       };
       
     } catch (error) {
-      console.error('❌ Error generating enhanced metadata summary:', error);
+      console.error('❌ Error generating simple summary:', error);
       return null;
     }
   }

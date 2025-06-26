@@ -64,6 +64,23 @@ class GitHubService {
   }
 
   /**
+   * Create a GitHub issue from meeting transcript data
+   * @param {object} meetingData - Meeting data with transcript and details
+   * @param {string} githubToken - GitHub access token
+   * @param {string} repo - Repository in format OWNER/REPO
+   * @returns {Promise<object>} Response object with success status
+   */
+  static async createIssueFromMeeting(meetingData, githubToken, repo) {
+    try {
+      const formattedSummary = this.formatMeetingTranscript(meetingData);
+      return await this.createIssue(formattedSummary, githubToken, repo);
+    } catch (error) {
+      console.error('❌ Error creating GitHub issue from meeting data:', error.message);
+      throw error;
+    }
+  }
+
+  /**
    * Validate GitHub credentials
    * @param {string} githubToken - GitHub access token
    * @param {string} repo - Repository in format OWNER/REPO
@@ -84,6 +101,36 @@ class GitHubService {
       console.error('Error validating GitHub credentials:', error);
       return false;
     }
+  }
+
+  /**
+   * Format meeting transcript data for GitHub issue
+   * @param {object} meetingData - Meeting data with transcript and details
+   * @returns {object} Formatted summary object with title and body
+   */
+  static formatMeetingTranscript(meetingData) {
+    const {
+      created,
+      transcriptContent,
+      summary
+    } = meetingData;
+
+    const meetingDate = created ? new Date(created).toLocaleDateString() : 'Unknown Date';
+    const title = `Meeting Notes - ${meetingDate}`;
+    
+    let body = '';
+    
+    // Add summary if available
+    if (summary) {
+      body += `${summary}\n\n`;
+    }
+    
+    // Add transcript content only
+    if (transcriptContent) {
+      body += transcriptContent;
+    }
+
+    return { title, body };
   }
 }
 

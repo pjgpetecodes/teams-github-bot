@@ -499,22 +499,10 @@ async function _fetchTranscriptContentAsync(decryptedContent, summary) {
       if (transcriptContent) {
         console.log('🎉 SUCCESS! Fetched actual transcript content async! Length:', transcriptContent.length);
         
-        // Update the summary with actual content
+        // Update the summary with actual content only
         updatedSummary = {
-          title: `Meeting Transcript with Actual Content - ${new Date().toLocaleDateString()}`,
-          body: `**Complete Meeting Transcript**\n\n` +
-                `📅 **Meeting Details:**\n` +
-                `- Organizer: ${decryptedContent.meetingOrganizer?.user?.displayName || 'Unknown'}\n` +
-                `- Created: ${new Date(decryptedContent.createdDateTime).toLocaleString()}\n` +
-                `- Ended: ${new Date(decryptedContent.endDateTime).toLocaleString()}\n` +
-                `- Meeting ID: ${decryptedContent.meetingId}\n` +
-                `- Call ID: ${decryptedContent.callId}\n\n` +
-                `📋 **Transcript Information:**\n` +
-                `- Transcript ID: ${decryptedContent.id}\n` +
-                `- Content URL: ${decryptedContent.transcriptContentUrl}\n` +
-                `- Correlation ID: ${decryptedContent.contentCorrelationId}\n\n` +
-                `🎤 **Actual Transcript Content:**\n` +
-                `${transcriptContent.substring(0, 1500)}${transcriptContent.length > 1500 ? '\n\n...(content truncated for display)' : ''}`,
+          title: `Meeting Notes - ${new Date().toLocaleDateString()}`,
+          body: transcriptContent,
           originalTranscript: transcriptContent,
           isMetadata: false,
           isRichData: true,
