@@ -1,0 +1,58 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.16",
+  "version": "1.0.6",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "packageName": "com.example.teamsgithubbot",
+  "developer": {
+    "name": "Your Name",
+    "websiteUrl": "https://your-website.com",
+    "privacyUrl": "https://your-website.com/privacy",
+    "termsOfUseUrl": "https://your-website.com/terms"
+  },
+  "name": {
+    "short": "Teams GitHub Bot",
+    "full": "Teams GitHub Bot"
+  },
+  "description": {
+    "short": "Receives Teams meeting transcripts and creates GitHub issues.",
+    "full": "A Teams app that receives meeting transcripts and summaries, then creates GitHub issues assigned to copilot."
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#6264A7",
+  "staticTabs": [
+    {
+      "entityId": "summaryTab",
+      "name": "Meeting Summaries",
+      "contentUrl": "https://your-ngrok-url.ngrok-free.app/ui/",
+      "scopes": ["personal"]
+    }
+  ],
+  "permissions": [
+    "identity", "messageTeamMembers"
+  ],
+  "webApplicationInfo": {
+    "id": "00000000-0000-0000-0000-000000000000",
+    "resource": "https://graph.microsoft.com"
+  },
+  "authorization": {
+    "permissions": {
+      "resourceSpecific": [
+        {
+          "name": "OnlineMeetingTranscript.Read.Chat",
+          "type": "Application"
+        },
+        {
+          "name": "OnlineMeetingTranscript.Read.All",
+          "type": "Application"
+        }
+      ]
+    }
+  },
+  "validDomains": [
+    "your-ngrok-url.ngrok-free.app"
+  ]
+}

@@ -1,0 +1,3 @@
+<!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
+
+This project is a Microsoft Teams app that receives meeting transcripts and summaries, then creates GitHub issues assigned to copilot. It includes a Node.js/Express backend for webhooks and API endpoints, a React frontend for the Teams tab UI, and a Teams app manifest. The backend handles Microsoft Graph subscriptions for meeting transcripts, receives notifications, summarizes transcripts, and interacts with the GitHub API to create issues. The frontend displays the summary and provides a button to create the issue.

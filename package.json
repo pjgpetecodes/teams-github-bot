@@ -1,0 +1,14 @@
+{
+  "name": "teams-github-bot",
+  "version": "1.0.0",
+  "description": "Microsoft Teams to GitHub bot with automated webhook setup",
+  "main": "setup-webhook.js",
+  "scripts": {
+    "setup": "node setup-webhook.js",
+    "start-api": "cd api && npm run dev",
+    "start-ui": "cd ui && npm start"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}
