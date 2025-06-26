@@ -159,7 +159,7 @@ Write-Host "`n🔍 Next Steps:" -ForegroundColor Cyan
 Write-Host "  1. Wait 30 minutes for policy propagation" -ForegroundColor White
 Write-Host "  2. Start a new Teams meeting with the same organizer" -ForegroundColor White
 Write-Host "  3. Check your webhook logs for successful transcript fetching" -ForegroundColor White
-Write-Host "  4. Look for '✅ Successfully fetched transcript content' in logs" -ForegroundColor White
+Write-Host "  4. Look for 'Successfully fetched transcript content' in logs" -ForegroundColor White
 
 Write-Host "`n📋 Policy Details Created:" -ForegroundColor Magenta
 Write-Host "  Policy Name: $PolicyName" -ForegroundColor White
