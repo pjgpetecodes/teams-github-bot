@@ -39,14 +39,20 @@ class GitHubService {
           title: summary.title,
           body: summary.body,
           labels: ['meeting-transcript', 'auto-generated']
-          // Note: assignees removed - add a valid GitHub username here if needed
-          // assignees: ['your-github-username']
         })
       });
 
       if (response.ok) {
         const issueData = await response.json();
         console.log('✅ Successfully created GitHub issue:', issueData.html_url);
+        
+        // Try to assign the issue to Copilot using GraphQL API
+        try {
+          await this.assignIssueToCopilot(repo, issueData.number, githubToken);
+        } catch (assignError) {
+          console.warn('⚠️ Could not assign issue to Copilot (may not be available in this repo):', assignError.message);
+        }
+        
         return { 
           success: true, 
           issueUrl: issueData.html_url,
@@ -131,6 +137,140 @@ class GitHubService {
     }
 
     return { title, body };
+  }
+
+  /**
+   * Assign an issue to GitHub Copilot using GraphQL API
+   * @param {string} repo - Repository in format OWNER/REPO
+   * @param {number} issueNumber - GitHub issue number
+   * @param {string} githubToken - GitHub access token
+   * @returns {Promise<boolean>} True if assignment was successful
+   */
+  static async assignIssueToCopilot(repo, issueNumber, githubToken) {
+    try {
+      console.log('🤖 Attempting to assign issue to GitHub Copilot...');
+      
+      const [owner, repoName] = repo.split('/');
+      
+      // Step 1: Check if Copilot coding agent is available in the repository
+      const suggestedActorsQuery = `
+        query {
+          repository(owner: "${owner}", name: "${repoName}") {
+            suggestedActors(capabilities: [CAN_BE_ASSIGNED], first: 100) {
+              nodes {
+                login
+                __typename
+                ... on Bot {
+                  id
+                }
+                ... on User {
+                  id
+                }
+              }
+            }
+          }
+        }
+      `;
+      
+      const actorsResponse = await fetch('https://api.github.com/graphql', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${githubToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ query: suggestedActorsQuery })
+      });
+      
+      const actorsData = await actorsResponse.json();
+      
+      if (actorsData.errors) {
+        throw new Error(`GraphQL error: ${JSON.stringify(actorsData.errors)}`);
+      }
+      
+      // Find Copilot in the suggested actors
+      const copilotActor = actorsData.data.repository.suggestedActors.nodes.find(
+        node => node.login === 'copilot-swe-agent'
+      );
+      
+      if (!copilotActor) {
+        throw new Error('Copilot coding agent is not available in this repository');
+      }
+      
+      console.log('✅ Copilot coding agent found in repository');
+      
+      // Step 2: Get the GraphQL global ID of the issue
+      const issueQuery = `
+        query {
+          repository(owner: "${owner}", name: "${repoName}") {
+            issue(number: ${issueNumber}) {
+              id
+              title
+            }
+          }
+        }
+      `;
+      
+      const issueResponse = await fetch('https://api.github.com/graphql', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${githubToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ query: issueQuery })
+      });
+      
+      const issueData = await issueResponse.json();
+      
+      if (issueData.errors) {
+        throw new Error(`GraphQL error: ${JSON.stringify(issueData.errors)}`);
+      }
+      
+      const issueId = issueData.data.repository.issue.id;
+      const copilotId = copilotActor.id;
+      
+      // Step 3: Assign the issue to Copilot using the mutation
+      const assignMutation = `
+        mutation {
+          replaceActorsForAssignable(input: {assignableId: "${issueId}", actorIds: ["${copilotId}"]}) {
+            assignable {
+              ... on Issue {
+                id
+                title
+                assignees(first: 10) {
+                  nodes {
+                    login
+                  }
+                }
+              }
+            }
+          }
+        }
+      `;
+      
+      const assignResponse = await fetch('https://api.github.com/graphql', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${githubToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ query: assignMutation })
+      });
+      
+      const assignData = await assignResponse.json();
+      
+      if (assignData.errors) {
+        throw new Error(`GraphQL error: ${JSON.stringify(assignData.errors)}`);
+      }
+      
+      console.log('🎉 Successfully assigned issue to GitHub Copilot!');
+      console.log('🤖 Copilot will now start working on this issue automatically');
+      
+      return true;
+      
+    } catch (error) {
+      console.error('❌ Error assigning issue to Copilot:', error.message);
+      throw error;
+    }
   }
 }
 
